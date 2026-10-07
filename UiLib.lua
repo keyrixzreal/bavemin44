@@ -1393,3 +1393,4 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
     return Window
 end
+return Library
