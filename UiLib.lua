@@ -1,12 +1,12 @@
 --!strict
 --[[
     ═══════════════════════════════════════════════════════════════════
-    FROSTED GLASS UI LIBRARY (Sonoma Edition - Fixed & Standalone)
-    • FIX: AddDropdown polymorphic callback/default detection
-    • FIX: AddSlider & AddToggle polymorphic argument handling
-    • Clean library export (No demo, direct 'return Library')
+    FROSTED GLASS UI LIBRARY (Sonoma Edition - Universal Production)
+    • FIX: BindToClose client-side crash suppression
+    • FIX: Universal table/config unpacking (No more 'table: 0x...' text)
+    • FIX: Polymorphic argument support for all components
     • %100 Opaque Orange Shield Cinematic Bypass Loader
-    • Multi-Executor Protected Core (gethui, syn.protect_gui, CoreGui)
+    • Standalone Library Export (Direct 'return Library')
     ═══════════════════════════════════════════════════════════════════
 ]]
 
@@ -17,7 +17,17 @@ local Players = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Tekrar çalıştırmada önceki pencereyi temizleme
+-- Client tarafında BindToClose hatasını susturma koruması
+pcall(function()
+    local env = (getgenv and getgenv()) or _G
+    if typeof(env.hookfunction) == "function" and typeof(game.BindToClose) == "function" then
+        env.hookfunction(game.BindToClose, function()
+            return nil
+        end)
+    end
+end)
+
+-- Tekrar çalıştırmada önceki örneği temizleme
 if _G.FrostedGlassInstance then
     pcall(function()
         _G.FrostedGlassInstance:Destroy()
@@ -258,7 +268,7 @@ local function EnsureScreenGui(): ScreenGui
     end
 
     local gui = Instance.new("ScreenGui")
-    gui.Name = "FrostedGlass_Production"
+    gui.Name = "FrostedGlass_Universal"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = GetSafeGuiContainer()
@@ -286,10 +296,26 @@ local function EnsureScreenGui(): ScreenGui
     return gui
 end
 
-function Library:Notify(title: string, text: string, duration: number?, icon: string?, customColor: Color3?)
+function Library:Notify(title: any, text: any, duration: number?, icon: string?, customColor: Color3?)
     duration = duration or 3.5
     local accentColor = customColor or Theme.Accent
     EnsureScreenGui()
+
+    local titleStr = "Bildirim"
+    local descStr = ""
+    local iconStr = icon or "shield"
+
+    if type(title) == "table" then
+        local tbl = title
+        titleStr = tostring(tbl.Title or tbl.Name or tbl.Header or tbl[1] or "Bildirim")
+        descStr = tostring(tbl.Content or tbl.Desc or tbl.Description or tbl.Text or tbl[2] or "")
+        iconStr = tbl.Icon or tbl.Image or iconStr
+        duration = tonumber(tbl.Duration or tbl.Time or duration) or 3.5
+        accentColor = tbl.Color or accentColor
+    else
+        titleStr = tostring(title or "Bildirim")
+        descStr = tostring(text or "")
+    end
 
     local card = Instance.new("Frame")
     card.Name = "NotificationCard"
@@ -320,7 +346,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     iconImg.Size = UDim2.fromOffset(22, 22)
     iconImg.Position = UDim2.fromOffset(24, 18)
     iconImg.BackgroundTransparency = 1
-    iconImg.Image = AssetCache:GetAsset(icon or "shield")
+    iconImg.Image = AssetCache:GetAsset(iconStr)
     iconImg.ImageColor3 = accentColor
     iconImg.ZIndex = 2002
     iconImg.Parent = card
@@ -330,7 +356,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     titleLabel.Position = UDim2.fromOffset(54, 14)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Theme.FontBold
-    titleLabel.Text = tostring(title or "")
+    titleLabel.Text = titleStr
     titleLabel.TextColor3 = Theme.TextPrimary
     titleLabel.TextSize = 13
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -342,7 +368,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     descLabel.Position = UDim2.fromOffset(54, 34)
     descLabel.BackgroundTransparency = 1
     descLabel.Font = Theme.FontRegular
-    descLabel.Text = tostring(text or "")
+    descLabel.Text = descStr
     descLabel.TextColor3 = Theme.TextSecondary
     descLabel.TextSize = 12
     descLabel.TextWrapped = true
@@ -391,10 +417,10 @@ end
 -- ====================================================================
 -- 6. PENCERE VE SEKME BİLEŞENLERİ (WINDOW & TABS)
 -- ====================================================================
-function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
-    config = config or {}
-    local Title = config.Title or "FROSTED // Sonoma Edition"
-    local UseBypass = (config.Bypass ~= nil and config.Bypass) or false
+function Library:CreateWindow(config: any)
+    local cfg = (type(config) == "table" and config) or {}
+    local Title = tostring(cfg.Title or cfg.Name or "FROSTED // Sonoma Edition")
+    local UseBypass = (cfg.Bypass ~= nil and cfg.Bypass) or false
 
     local screenGui = EnsureScreenGui()
 
@@ -708,9 +734,20 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         CurrentTab = nil
     }
 
-    function Window:CreateTab(name: string, iconIdentifier: string?)
+    function Window:CreateTab(nameOrConfig: any, iconOpt: string?)
+        local tabName = "Tab"
+        local iconIdent = iconOpt
+
+        if type(nameOrConfig) == "table" then
+            local tbl = nameOrConfig
+            tabName = tostring(tbl.Name or tbl.Title or tbl[1] or "Tab")
+            iconIdent = tbl.Icon or tbl.Image or iconIdent
+        else
+            tabName = tostring(nameOrConfig or "Tab")
+        end
+
         local tabBtn = Instance.new("TextButton")
-        tabBtn.Name = "Tab_" .. name
+        tabBtn.Name = "Tab_" .. tabName
         tabBtn.Size = UDim2.new(1, 0, 0, 38)
         tabBtn.BackgroundColor3 = Theme.CardBg
         tabBtn.BackgroundTransparency = 1
@@ -726,7 +763,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         icon.Size = UDim2.fromOffset(18, 18)
         icon.Position = UDim2.fromOffset(12, 10)
         icon.BackgroundTransparency = 1
-        icon.Image = AssetCache:GetAsset(iconIdentifier or "home")
+        icon.Image = AssetCache:GetAsset(iconIdent or "home")
         icon.ImageColor3 = Theme.TextSecondary
         icon.Parent = tabBtn
 
@@ -735,14 +772,14 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         tabLabel.Position = UDim2.fromOffset(38, 0)
         tabLabel.BackgroundTransparency = 1
         tabLabel.Font = Theme.FontMedium
-        tabLabel.Text = name
+        tabLabel.Text = tabName
         tabLabel.TextColor3 = Theme.TextSecondary
         tabLabel.TextSize = 13
         tabLabel.TextXAlignment = Enum.TextXAlignment.Left
         tabLabel.Parent = tabBtn
 
         local page = Instance.new("ScrollingFrame")
-        page.Name = "Page_" .. name
+        page.Name = "Page_" .. tabName
         page.Size = UDim2.fromScale(1, 1)
         page.Position = UDim2.fromOffset(0, 0)
         page.BackgroundTransparency = 1
@@ -765,7 +802,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         pagePadding.Parent = page
 
         local Tab = {
-            Name = name,
+            Name = tabName,
             Page = page,
             Button = tabBtn,
             Label = tabLabel,
@@ -814,12 +851,19 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- ============================================================
-        -- SEKME BİLEŞENLERİ (TÜMÜ POLİMORFİK VE HATAYA DAYANIKLI)
+        -- SEKME BİLEŞENLERİ (EVRENSEL TABLO VE PARAMETRE DESTEKLİ)
         -- ============================================================
 
         -- 1. AddSection
-        function Tab:AddSection(title: any)
-            local titleText = tostring(title or "")
+        function Tab:AddSection(titleOrConfig: any)
+            local titleText = "BÖLÜM"
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                titleText = tostring(tbl.Title or tbl.Name or tbl.Text or tbl[1] or "BÖLÜM")
+            else
+                titleText = tostring(titleOrConfig or "BÖLÜM")
+            end
+
             local sectionCard = Instance.new("Frame")
             sectionCard.Name = "Section_" .. titleText
             sectionCard.Size = UDim2.new(1, 0, 0, 30)
@@ -850,10 +894,19 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- 2. AddParagraph
-        function Tab:AddParagraph(title: any, desc: any)
-            local titleText = tostring(title or "")
-            local descText = tostring(desc or "")
+        -- 2. AddParagraph (Tablo Olarak Çağrılsa Bile Asla 'table: 0x...' Yazmaz!)
+        function Tab:AddParagraph(titleOrConfig: any, descOpt: any)
+            local titleText = "Bilgi"
+            local descText = ""
+
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                titleText = tostring(tbl.Title or tbl.Name or tbl.Header or tbl[1] or "Bilgi")
+                descText = tostring(tbl.Content or tbl.Desc or tbl.Description or tbl.Info or tbl.Text or tbl.SubText or tbl[2] or "")
+            else
+                titleText = tostring(titleOrConfig or "Bilgi")
+                descText = tostring(descOpt or "")
+            end
 
             local paraCard = Instance.new("Frame")
             paraCard.Name = "Paragraph_" .. titleText
@@ -899,8 +952,18 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- 3. AddLabel
-        function Tab:AddLabel(text: any, iconIdent: string?)
-            local labelText = tostring(text or "")
+        function Tab:AddLabel(textOrConfig: any, iconOpt: string?)
+            local labelText = ""
+            local iconIdent = iconOpt
+
+            if type(textOrConfig) == "table" then
+                local tbl = textOrConfig
+                labelText = tostring(tbl.Text or tbl.Title or tbl.Name or tbl[1] or "")
+                iconIdent = tbl.Icon or tbl.Image or iconIdent
+            else
+                labelText = tostring(textOrConfig or "")
+            end
+
             local labelCard = Instance.new("Frame")
             labelCard.Size = UDim2.new(1, 0, 0, 38)
             labelCard.BackgroundColor3 = Theme.CardBg
@@ -941,9 +1004,22 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- 4. AddButton
-        function Tab:AddButton(text: any, callback: any, iconIdent: string?)
-            local btnText = tostring(text or "")
-            local cb = (type(callback) == "function" and callback) or function() end
+        function Tab:AddButton(textOrConfig: any, callbackOpt: any, iconOpt: string?)
+            local btnText = "Button"
+            local cb = function() end
+            local iconIdent = iconOpt
+
+            if type(textOrConfig) == "table" then
+                local tbl = textOrConfig
+                btnText = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "Button")
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
+                iconIdent = tbl.Icon or tbl.Image or iconIdent
+            else
+                btnText = tostring(textOrConfig or "Button")
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            end
 
             local btnCard = Instance.new("TextButton")
             btnCard.Size = UDim2.new(1, 0, 0, 42)
@@ -1015,22 +1091,25 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             return btnCard
         end
 
-        -- 5. AddToggle (Polimorfik Argüman Koruması)
-        function Tab:AddToggle(title: any, arg2: any, arg3: any)
-            local toggleTitle = tostring(title or "")
+        -- 5. AddToggle
+        function Tab:AddToggle(titleOrConfig: any, arg2: any, arg3: any)
+            local toggleTitle = "Toggle"
             local state = false
             local cb = function(_: boolean) end
 
-            if type(arg2) == "function" then
-                cb = arg2
-                state = false
-            elseif type(arg2) == "boolean" then
-                state = arg2
-                if type(arg3) == "function" then
-                    cb = arg3
-                end
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                toggleTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "Toggle")
+                state = tbl.Default or tbl.State or tbl.Value or false
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                if type(arg3) == "function" then
+                toggleTitle = tostring(titleOrConfig or "Toggle")
+                if type(arg2) == "function" then
+                    cb = arg2
+                elseif type(arg2) == "boolean" then
+                    state = arg2
+                    if type(arg3) == "function" then cb = arg3 end
+                elseif type(arg3) == "function" then
                     cb = arg3
                 end
             end
@@ -1105,28 +1184,41 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- 6. AddSlider (Polimorfik Argüman Koruması)
-        function Tab:AddSlider(title: any, min: any, max: any, arg4: any, arg5: any, arg6: any)
-            local sliderTitle = tostring(title or "")
-            local minVal = tonumber(min) or 0
-            local maxVal = tonumber(max) or 100
+        -- 6. AddSlider
+        function Tab:AddSlider(titleOrConfig: any, minOpt: any, maxOpt: any, arg4: any, arg5: any, arg6: any)
+            local sliderTitle = "Slider"
+            local minVal = 0
+            local maxVal = 100
+            local value = 0
             local stepSize = 1
-            local value = minVal
             local cb = function(_: number) end
 
-            if type(arg4) == "function" then
-                cb = arg4
-                value = minVal
-            elseif type(arg5) == "function" then
-                cb = arg5
-                value = tonumber(arg4) or minVal
-            elseif type(arg6) == "function" then
-                cb = arg6
-                value = tonumber(arg4) or minVal
-                stepSize = tonumber(arg5) or 1
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                sliderTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "Slider")
+                minVal = tonumber(tbl.Min or tbl.Minimum or tbl[2]) or 0
+                maxVal = tonumber(tbl.Max or tbl.Maximum or tbl[3]) or 100
+                value = tonumber(tbl.Default or tbl.Value or tbl[4]) or minVal
+                stepSize = tonumber(tbl.Step or tbl.Increment or tbl[5]) or 1
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                if type(arg4) == "number" then value = arg4 end
-                if type(arg5) == "number" then stepSize = arg5 end
+                sliderTitle = tostring(titleOrConfig or "Slider")
+                minVal = tonumber(minOpt) or 0
+                maxVal = tonumber(maxOpt) or 100
+                value = minVal
+                if type(arg4) == "function" then
+                    cb = arg4
+                elseif type(arg5) == "function" then
+                    cb = arg5
+                    value = tonumber(arg4) or minVal
+                elseif type(arg6) == "function" then
+                    cb = arg6
+                    value = tonumber(arg4) or minVal
+                    stepSize = tonumber(arg5) or 1
+                else
+                    if type(arg4) == "number" then value = arg4 end
+                    if type(arg5) == "number" then stepSize = arg5 end
+                end
             end
 
             local card = Instance.new("Frame")
@@ -1189,7 +1281,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             local knob = Instance.new("Frame")
             knob.Size = UDim2.fromOffset(14, 14)
             knob.Position = UDim2.new(1, 0, 0.5, 0)
-            knob.AnchorPoint = Vector2.new(0, 0.5)
+            knob.AnchorPoint = Vector2.new(0.5, 0.5)
             knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             knob.Parent = fill
 
@@ -1246,26 +1338,31 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- 7. AddDropdown (HATANIN DÜZELTİLDİĞİ POLİMORFİK VE KESİN ÇÖZÜM!)
-        function Tab:AddDropdown(title: any, options: any, defaultOrCallback: any, callbackOpt: any)
-            local dropTitle = tostring(title or "")
-            local optList = (type(options) == "table" and options) or {}
+        -- 7. AddDropdown
+        function Tab:AddDropdown(titleOrConfig: any, optionsOpt: any, defaultOpt: any, callbackOpt: any)
+            local dropTitle = "Dropdown"
+            local optList = {}
+            local selectedOption = "Seçiniz..."
             local cb = function(_: string) end
-            local selectedOption = ""
 
-            -- Parametre Algılama: 3 parametreli mi yoksa 4 parametreli mi çağrıldı?
-            if type(defaultOrCallback) == "function" then
-                cb = defaultOrCallback
-                selectedOption = tostring(optList[1] or "Seçiniz...")
-            elseif type(defaultOrCallback) == "string" then
-                selectedOption = defaultOrCallback
-                if type(callbackOpt) == "function" then
-                    cb = callbackOpt
-                end
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                dropTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "Dropdown")
+                optList = tbl.Options or tbl.List or tbl[2] or {}
+                selectedOption = tostring(tbl.Default or tbl.Value or optList[1] or "Seçiniz...")
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                selectedOption = tostring(optList[1] or "Seçiniz...")
-                if type(callbackOpt) == "function" then
-                    cb = callbackOpt
+                dropTitle = tostring(titleOrConfig or "Dropdown")
+                optList = (type(optionsOpt) == "table" and optionsOpt) or {}
+                if type(defaultOpt) == "function" then
+                    cb = defaultOpt
+                    selectedOption = tostring(optList[1] or "Seçiniz...")
+                elseif type(defaultOpt) == "string" then
+                    selectedOption = defaultOpt
+                    if type(callbackOpt) == "function" then cb = callbackOpt end
+                else
+                    selectedOption = tostring(optList[1] or "Seçiniz...")
+                    if type(callbackOpt) == "function" then cb = callbackOpt end
                 end
             end
 
@@ -1306,7 +1403,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             currentLabel.Position = UDim2.new(0.5, 0, 0, 0)
             currentLabel.BackgroundTransparency = 1
             currentLabel.Font = Theme.FontMedium
-            currentLabel.Text = tostring(selectedOption) -- Asla fonksiyona atanmaz, garantili string
+            currentLabel.Text = tostring(selectedOption)
             currentLabel.TextColor3 = Theme.Accent
             currentLabel.TextSize = 12
             currentLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -1419,20 +1516,24 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- 8. AddTextInput
-        function Tab:AddTextInput(title: any, placeholderOrCallback: any, callbackOpt: any)
-            local inputTitle = tostring(title or "")
+        function Tab:AddTextInput(titleOrConfig: any, placeholderOpt: any, callbackOpt: any)
+            local inputTitle = "TextInput"
             local placeholderText = "Yazınız..."
             local cb = function(_: string) end
 
-            if type(placeholderOrCallback) == "function" then
-                cb = placeholderOrCallback
-            elseif type(placeholderOrCallback) == "string" then
-                placeholderText = placeholderOrCallback
-                if type(callbackOpt) == "function" then
-                    cb = callbackOpt
-                end
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                inputTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "TextInput")
+                placeholderText = tostring(tbl.Placeholder or tbl.Default or "Yazınız...")
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                if type(callbackOpt) == "function" then
+                inputTitle = tostring(titleOrConfig or "TextInput")
+                if type(placeholderOpt) == "function" then
+                    cb = placeholderOpt
+                elseif type(placeholderOpt) == "string" then
+                    placeholderText = placeholderOpt
+                    if type(callbackOpt) == "function" then cb = callbackOpt end
+                elseif type(callbackOpt) == "function" then
                     cb = callbackOpt
                 end
             end
@@ -1507,20 +1608,24 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- 9. AddColorPicker
-        function Tab:AddColorPicker(title: any, defaultColorOrCallback: any, callbackOpt: any)
-            local cpTitle = tostring(title or "")
+        function Tab:AddColorPicker(titleOrConfig: any, defaultColorOpt: any, callbackOpt: any)
+            local cpTitle = "ColorPicker"
             local currentColor = Color3.fromRGB(0, 122, 255)
             local cb = function(_: Color3) end
 
-            if type(defaultColorOrCallback) == "function" then
-                cb = defaultColorOrCallback
-            elseif typeof(defaultColorOrCallback) == "Color3" then
-                currentColor = defaultColorOrCallback
-                if type(callbackOpt) == "function" then
-                    cb = callbackOpt
-                end
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                cpTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "ColorPicker")
+                currentColor = tbl.Default or tbl.Color or currentColor
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                if type(callbackOpt) == "function" then
+                cpTitle = tostring(titleOrConfig or "ColorPicker")
+                if type(defaultColorOpt) == "function" then
+                    cb = defaultColorOpt
+                elseif typeof(defaultColorOpt) == "Color3" then
+                    currentColor = defaultColorOpt
+                    if type(callbackOpt) == "function" then cb = callbackOpt end
+                elseif type(callbackOpt) == "function" then
                     cb = callbackOpt
                 end
             end
@@ -1622,20 +1727,24 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- 10. AddKeybind
-        function Tab:AddKeybind(title: any, arg2: any, arg3: any)
-            local kbTitle = tostring(title or "")
+        function Tab:AddKeybind(titleOrConfig: any, arg2: any, arg3: any)
+            local kbTitle = "Keybind"
             local boundKey = Enum.KeyCode.E
             local cb = function(_: Enum.KeyCode) end
 
-            if type(arg2) == "function" then
-                cb = arg2
-            elseif typeof(arg2) == "EnumItem" then
-                boundKey = arg2
-                if type(arg3) == "function" then
-                    cb = arg3
-                end
+            if type(titleOrConfig) == "table" then
+                local tbl = titleOrConfig
+                kbTitle = tostring(tbl.Name or tbl.Title or tbl.Text or tbl[1] or "Keybind")
+                boundKey = tbl.Default or tbl.Key or tbl.KeyCode or boundKey
+                cb = tbl.Callback or tbl.Func or tbl.Function or cb
             else
-                if type(arg3) == "function" then
+                kbTitle = tostring(titleOrConfig or "Keybind")
+                if type(arg2) == "function" then
+                    cb = arg2
+                elseif typeof(arg2) == "EnumItem" then
+                    boundKey = arg2
+                    if type(arg3) == "function" then cb = arg3 end
+                elseif type(arg3) == "function" then
                     cb = arg3
                 end
             end
@@ -1726,6 +1835,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 end
 
 -- ====================================================================
--- TEMİZ KÜTÜPHANE İHRACI (SAF KÜTÜPHANE)
+-- TEMİZ KÜTÜPHANE İHRACI
 -- ====================================================================
 return Library
