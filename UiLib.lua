@@ -1,8 +1,9 @@
 --!strict
 --[[
     ═══════════════════════════════════════════════════════════════════
-    FROSTED GLASS UI LIBRARY (Sonoma Edition - Standalone Production)
-    • Fixed 'AddParagraph' and all component bindings
+    FROSTED GLASS UI LIBRARY (Sonoma Edition - Fixed & Standalone)
+    • FIX: AddDropdown polymorphic callback/default detection
+    • FIX: AddSlider & AddToggle polymorphic argument handling
     • Clean library export (No demo, direct 'return Library')
     • %100 Opaque Orange Shield Cinematic Bypass Loader
     • Multi-Executor Protected Core (gethui, syn.protect_gui, CoreGui)
@@ -329,7 +330,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     titleLabel.Position = UDim2.fromOffset(54, 14)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Theme.FontBold
-    titleLabel.Text = title
+    titleLabel.Text = tostring(title or "")
     titleLabel.TextColor3 = Theme.TextPrimary
     titleLabel.TextSize = 13
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -341,7 +342,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     descLabel.Position = UDim2.fromOffset(54, 34)
     descLabel.BackgroundTransparency = 1
     descLabel.Font = Theme.FontRegular
-    descLabel.Text = text
+    descLabel.Text = tostring(text or "")
     descLabel.TextColor3 = Theme.TextSecondary
     descLabel.TextSize = 12
     descLabel.TextWrapped = true
@@ -417,7 +418,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     uiScale.Scale = 0.85
     uiScale.Parent = mainFrame
 
-    -- Üst Bar
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
     topBar.Size = UDim2.new(1, 0, 0, 48)
@@ -492,15 +492,11 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     CreateMacDot(Theme.Warning, function()
         isMinimized = not isMinimized
         if isMinimized then
-            Animate(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.fromOffset(680, 48)
-            })
+            Animate(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(680, 48) })
             bodyContainer.Visible = false
         else
             bodyContainer.Visible = true
-            Animate(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.fromOffset(680, 450)
-            })
+            Animate(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(680, 450) })
         end
     end)
     CreateMacDot(Theme.Success, function()
@@ -818,13 +814,14 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
 
         -- ============================================================
-        -- SEKME BİLEŞENLERİ (TÜM METOTLAR EKSİKSİZ MEVCUTTUR)
+        -- SEKME BİLEŞENLERİ (TÜMÜ POLİMORFİK VE HATAYA DAYANIKLI)
         -- ============================================================
 
         -- 1. AddSection
-        function Tab:AddSection(title: string)
+        function Tab:AddSection(title: any)
+            local titleText = tostring(title or "")
             local sectionCard = Instance.new("Frame")
-            sectionCard.Name = "Section_" .. title
+            sectionCard.Name = "Section_" .. titleText
             sectionCard.Size = UDim2.new(1, 0, 0, 30)
             sectionCard.BackgroundTransparency = 1
             sectionCard.Parent = page
@@ -834,7 +831,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             sectionLabel.Position = UDim2.fromOffset(6, 0)
             sectionLabel.BackgroundTransparency = 1
             sectionLabel.Font = Theme.FontBold
-            sectionLabel.Text = string.upper(title)
+            sectionLabel.Text = string.upper(titleText)
             sectionLabel.TextColor3 = Theme.Accent
             sectionLabel.TextSize = 11
             sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -849,14 +846,17 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             line.Parent = sectionCard
 
             return {
-                Set = function(_, newTitle: string) sectionLabel.Text = string.upper(newTitle) end
+                Set = function(_, newTitle: any) sectionLabel.Text = string.upper(tostring(newTitle or "")) end
             }
         end
 
-        -- 2. AddParagraph (Hatanın çözüldüğü kritik metot!)
-        function Tab:AddParagraph(title: string, desc: string)
+        -- 2. AddParagraph
+        function Tab:AddParagraph(title: any, desc: any)
+            local titleText = tostring(title or "")
+            local descText = tostring(desc or "")
+
             local paraCard = Instance.new("Frame")
-            paraCard.Name = "Paragraph_" .. title
+            paraCard.Name = "Paragraph_" .. titleText
             paraCard.Size = UDim2.new(1, 0, 0, 60)
             paraCard.BackgroundColor3 = Theme.CardBg
             paraCard.BackgroundTransparency = 0.45
@@ -872,7 +872,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             pTitle.Position = UDim2.fromOffset(14, 8)
             pTitle.BackgroundTransparency = 1
             pTitle.Font = Theme.FontBold
-            pTitle.Text = title
+            pTitle.Text = titleText
             pTitle.TextColor3 = Theme.TextPrimary
             pTitle.TextSize = 13
             pTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -883,7 +883,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             pDesc.Position = UDim2.fromOffset(14, 28)
             pDesc.BackgroundTransparency = 1
             pDesc.Font = Theme.FontRegular
-            pDesc.Text = desc
+            pDesc.Text = descText
             pDesc.TextColor3 = Theme.TextMuted
             pDesc.TextSize = 11
             pDesc.TextWrapped = true
@@ -891,15 +891,16 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             pDesc.Parent = paraCard
 
             return {
-                Set = function(_, newTitle: string, newDesc: string)
-                    pTitle.Text = newTitle
-                    pDesc.Text = newDesc
+                Set = function(_, newTitle: any, newDesc: any)
+                    pTitle.Text = tostring(newTitle or "")
+                    pDesc.Text = tostring(newDesc or "")
                 end
             }
         end
 
         -- 3. AddLabel
-        function Tab:AddLabel(text: string, iconIdent: string?)
+        function Tab:AddLabel(text: any, iconIdent: string?)
+            local labelText = tostring(text or "")
             local labelCard = Instance.new("Frame")
             labelCard.Size = UDim2.new(1, 0, 0, 38)
             labelCard.BackgroundColor3 = Theme.CardBg
@@ -928,20 +929,21 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             textLabel.Position = UDim2.fromOffset(offsetLeft, 0)
             textLabel.BackgroundTransparency = 1
             textLabel.Font = Theme.FontMedium
-            textLabel.Text = text
+            textLabel.Text = labelText
             textLabel.TextColor3 = Theme.TextSecondary
             textLabel.TextSize = 13
             textLabel.TextXAlignment = Enum.TextXAlignment.Left
             textLabel.Parent = labelCard
 
             return {
-                Set = function(_, newText: string) textLabel.Text = newText end
+                Set = function(_, newText: any) textLabel.Text = tostring(newText or "") end
             }
         end
 
         -- 4. AddButton
-        function Tab:AddButton(text: string, callback: () -> (), iconIdent: string?)
-            callback = callback or function() end
+        function Tab:AddButton(text: any, callback: any, iconIdent: string?)
+            local btnText = tostring(text or "")
+            local cb = (type(callback) == "function" and callback) or function() end
 
             local btnCard = Instance.new("TextButton")
             btnCard.Size = UDim2.new(1, 0, 0, 42)
@@ -977,7 +979,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(offsetLeft, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = text
+            label.Text = btnText
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1007,16 +1009,31 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             end)
             btnCard.MouseButton1Up:Connect(function()
                 Animate(btnScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
-                task.spawn(function() pcall(callback) end)
+                task.spawn(function() pcall(cb) end)
             end)
 
             return btnCard
         end
 
-        -- 5. AddToggle
-        function Tab:AddToggle(title: string, default: boolean?, callback: (state: boolean) -> ())
-            local state = default or false
-            callback = callback or function() end
+        -- 5. AddToggle (Polimorfik Argüman Koruması)
+        function Tab:AddToggle(title: any, arg2: any, arg3: any)
+            local toggleTitle = tostring(title or "")
+            local state = false
+            local cb = function(_: boolean) end
+
+            if type(arg2) == "function" then
+                cb = arg2
+                state = false
+            elseif type(arg2) == "boolean" then
+                state = arg2
+                if type(arg3) == "function" then
+                    cb = arg3
+                end
+            else
+                if type(arg3) == "function" then
+                    cb = arg3
+                end
+            end
 
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, 0, 0, 44)
@@ -1034,7 +1051,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(14, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = title
+            label.Text = toggleTitle
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1077,7 +1094,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                     })
                 end)
                 Animate(switch, TweenInfo.new(0.3), { BackgroundColor3 = targetColor })
-                task.spawn(function() pcall(callback, state) end)
+                task.spawn(function() pcall(cb, state) end)
             end
 
             switch.MouseButton1Click:Connect(function() UpdateToggle(not state) end)
@@ -1088,11 +1105,29 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- 6. AddSlider
-        function Tab:AddSlider(title: string, min: number, max: number, default: number?, step: number?, callback: (val: number) -> ())
-            local stepSize = step or 1
-            local value = default or min
-            callback = callback or function() end
+        -- 6. AddSlider (Polimorfik Argüman Koruması)
+        function Tab:AddSlider(title: any, min: any, max: any, arg4: any, arg5: any, arg6: any)
+            local sliderTitle = tostring(title or "")
+            local minVal = tonumber(min) or 0
+            local maxVal = tonumber(max) or 100
+            local stepSize = 1
+            local value = minVal
+            local cb = function(_: number) end
+
+            if type(arg4) == "function" then
+                cb = arg4
+                value = minVal
+            elseif type(arg5) == "function" then
+                cb = arg5
+                value = tonumber(arg4) or minVal
+            elseif type(arg6) == "function" then
+                cb = arg6
+                value = tonumber(arg4) or minVal
+                stepSize = tonumber(arg5) or 1
+            else
+                if type(arg4) == "number" then value = arg4 end
+                if type(arg5) == "number" then stepSize = arg5 end
+            end
 
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, 0, 0, 56)
@@ -1110,7 +1145,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             titleLabel.Position = UDim2.fromOffset(14, 8)
             titleLabel.BackgroundTransparency = 1
             titleLabel.Font = Theme.FontMedium
-            titleLabel.Text = title
+            titleLabel.Text = sliderTitle
             titleLabel.TextColor3 = Theme.TextPrimary
             titleLabel.TextSize = 13
             titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1139,7 +1174,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             trackCorner.CornerRadius = UDim.new(1, 0)
             trackCorner.Parent = track
 
-            local initialPct = math.clamp((value - min) / (max - min), 0, 1)
+            local initialPct = math.clamp((value - minVal) / (maxVal - minVal), 0, 1)
 
             local fill = Instance.new("Frame")
             fill.Size = UDim2.fromScale(initialPct, 1)
@@ -1154,7 +1189,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             local knob = Instance.new("Frame")
             knob.Size = UDim2.fromOffset(14, 14)
             knob.Position = UDim2.new(1, 0, 0.5, 0)
-            knob.AnchorPoint = Vector2.new(0.5, 0.5)
+            knob.AnchorPoint = Vector2.new(0, 0.5)
             knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             knob.Parent = fill
 
@@ -1166,14 +1201,14 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
             local function CalculateValue(inputX: number)
                 local pct = math.clamp((inputX - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-                local rawVal = min + (max - min) * pct
+                local rawVal = minVal + (maxVal - minVal) * pct
                 value = math.floor((rawVal / stepSize) + 0.5) * stepSize
-                value = math.clamp(value, min, max)
+                value = math.clamp(value, minVal, maxVal)
                 
                 valueLabel.Text = tostring(value)
-                local fillPct = (value - min) / (max - min)
+                local fillPct = (value - minVal) / (maxVal - minVal)
                 Animate(fill, TweenInfo.new(0.05, Enum.EasingStyle.Linear), { Size = UDim2.fromScale(fillPct, 1) })
-                task.spawn(function() pcall(callback, value) end)
+                task.spawn(function() pcall(cb, value) end)
             end
 
             track.InputBegan:Connect(function(input)
@@ -1201,21 +1236,39 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
             return {
                 Set = function(_, newVal: number)
-                    value = math.clamp(newVal, min, max)
+                    value = math.clamp(newVal, minVal, maxVal)
                     valueLabel.Text = tostring(value)
-                    local pct = (value - min) / (max - min)
+                    local pct = (value - minVal) / (maxVal - minVal)
                     Animate(fill, TweenInfo.new(0.2), { Size = UDim2.fromScale(pct, 1) })
-                    pcall(callback, value)
+                    pcall(cb, value)
                 end,
                 Value = value
             }
         end
 
-        -- 7. AddDropdown
-        function Tab:AddDropdown(title: string, options: {string}, default: string?, callback: (selected: string) -> ())
-            options = options or {}
-            callback = callback or function() end
-            local selectedOption = default or options[1] or "Seçiniz..."
+        -- 7. AddDropdown (HATANIN DÜZELTİLDİĞİ POLİMORFİK VE KESİN ÇÖZÜM!)
+        function Tab:AddDropdown(title: any, options: any, defaultOrCallback: any, callbackOpt: any)
+            local dropTitle = tostring(title or "")
+            local optList = (type(options) == "table" and options) or {}
+            local cb = function(_: string) end
+            local selectedOption = ""
+
+            -- Parametre Algılama: 3 parametreli mi yoksa 4 parametreli mi çağrıldı?
+            if type(defaultOrCallback) == "function" then
+                cb = defaultOrCallback
+                selectedOption = tostring(optList[1] or "Seçiniz...")
+            elseif type(defaultOrCallback) == "string" then
+                selectedOption = defaultOrCallback
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            else
+                selectedOption = tostring(optList[1] or "Seçiniz...")
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            end
+
             local isOpen = false
 
             local card = Instance.new("Frame")
@@ -1242,7 +1295,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(14, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = title
+            label.Text = dropTitle
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1253,7 +1306,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             currentLabel.Position = UDim2.new(0.5, 0, 0, 0)
             currentLabel.BackgroundTransparency = 1
             currentLabel.Font = Theme.FontMedium
-            currentLabel.Text = selectedOption
+            currentLabel.Text = tostring(selectedOption) -- Asla fonksiyona atanmaz, garantili string
             currentLabel.TextColor3 = Theme.Accent
             currentLabel.TextSize = 12
             currentLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -1280,7 +1333,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             optLayout.Parent = optionsContainer
 
             local function UpdateDropdownVisuals()
-                currentLabel.Text = selectedOption
+                currentLabel.Text = tostring(selectedOption)
                 for _, ch in ipairs(optionsContainer:GetChildren()) do
                     if ch:IsA("TextButton") then
                         local optLabel = ch:FindFirstChildOfClass("TextLabel")
@@ -1304,10 +1357,11 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                     if ch:IsA("TextButton") then ch:Destroy() end
                 end
 
-                for idx, optText in ipairs(options) do
-                    local isSelected = (optText == selectedOption)
+                for idx, optText in ipairs(optList) do
+                    local optStr = tostring(optText)
+                    local isSelected = (optStr == selectedOption)
                     local optBtn = Instance.new("TextButton")
-                    optBtn.Name = "Option_" .. optText
+                    optBtn.Name = "Option_" .. optStr
                     optBtn.Size = UDim2.new(1, 0, 0, 32)
                     optBtn.BackgroundColor3 = isSelected and Color3.fromRGB(0, 122, 255) or Color3.fromRGB(34, 40, 52)
                     optBtn.BackgroundTransparency = isSelected and 0.25 or 0.55
@@ -1325,19 +1379,19 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                     optLabel.Position = UDim2.fromOffset(10, 0)
                     optLabel.BackgroundTransparency = 1
                     optLabel.Font = isSelected and Theme.FontBold or Theme.FontRegular
-                    optLabel.Text = optText
+                    optLabel.Text = optStr
                     optLabel.TextColor3 = isSelected and Theme.Accent or Theme.TextSecondary
                     optLabel.TextSize = 12
                     optLabel.TextXAlignment = Enum.TextXAlignment.Left
                     optLabel.Parent = optBtn
 
                     optBtn.MouseButton1Click:Connect(function()
-                        selectedOption = optText
+                        selectedOption = optStr
                         UpdateDropdownVisuals()
                         isOpen = false
                         Animate(chevron, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Rotation = 0 })
                         Animate(card, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 42) })
-                        task.spawn(function() pcall(callback, selectedOption) end)
+                        task.spawn(function() pcall(cb, selectedOption) end)
                     end)
                 end
             end
@@ -1346,27 +1400,42 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
             header.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
-                local targetHeight = isOpen and (48 + (#options * 36) + 8) or 42
+                local targetHeight = isOpen and (48 + (#optList * 36) + 8) or 42
                 Animate(chevron, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Rotation = isOpen and 180 or 0 })
                 Animate(card, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, targetHeight) })
             end)
 
             return {
-                Set = function(_, opt: string)
-                    selectedOption = opt
+                Set = function(_, opt: any)
+                    selectedOption = tostring(opt)
                     UpdateDropdownVisuals()
-                    pcall(callback, opt)
+                    pcall(cb, selectedOption)
                 end,
-                Refresh = function(_, newOpts: {string})
-                    options = newOpts
+                Refresh = function(_, newOpts: any)
+                    optList = (type(newOpts) == "table" and newOpts) or {}
                     Populate()
                 end
             }
         end
 
         -- 8. AddTextInput
-        function Tab:AddTextInput(title: string, placeholder: string?, callback: (text: string) -> ())
-            callback = callback or function() end
+        function Tab:AddTextInput(title: any, placeholderOrCallback: any, callbackOpt: any)
+            local inputTitle = tostring(title or "")
+            local placeholderText = "Yazınız..."
+            local cb = function(_: string) end
+
+            if type(placeholderOrCallback) == "function" then
+                cb = placeholderOrCallback
+            elseif type(placeholderOrCallback) == "string" then
+                placeholderText = placeholderOrCallback
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            else
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            end
 
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, 0, 0, 44)
@@ -1385,7 +1454,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(14, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = title
+            label.Text = inputTitle
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1407,7 +1476,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             textBox.Position = UDim2.fromOffset(8, 0)
             textBox.BackgroundTransparency = 1
             textBox.Font = Theme.FontRegular
-            textBox.PlaceholderText = placeholder or "Yazınız..."
+            textBox.PlaceholderText = placeholderText
             textBox.PlaceholderColor3 = Theme.TextMuted
             textBox.Text = ""
             textBox.TextColor3 = Theme.TextPrimary
@@ -1425,22 +1494,37 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                 Animate(inputContainer, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(36, 42, 56) })
                 stroke.Color = Theme.StrokeColor
                 stroke.Transparency = Theme.StrokeTransparency
-                task.spawn(function() pcall(callback, textBox.Text) end)
+                task.spawn(function() pcall(cb, textBox.Text) end)
             end)
 
             return {
-                Set = function(_, newText: string)
-                    textBox.Text = newText
-                    pcall(callback, newText)
+                Set = function(_, newText: any)
+                    textBox.Text = tostring(newText or "")
+                    pcall(cb, textBox.Text)
                 end,
                 Get = function(_) return textBox.Text end
             }
         end
 
         -- 9. AddColorPicker
-        function Tab:AddColorPicker(title: string, defaultColor: Color3?, callback: (color: Color3) -> ())
-            local currentColor = defaultColor or Color3.fromRGB(0, 122, 255)
-            callback = callback or function() end
+        function Tab:AddColorPicker(title: any, defaultColorOrCallback: any, callbackOpt: any)
+            local cpTitle = tostring(title or "")
+            local currentColor = Color3.fromRGB(0, 122, 255)
+            local cb = function(_: Color3) end
+
+            if type(defaultColorOrCallback) == "function" then
+                cb = defaultColorOrCallback
+            elseif typeof(defaultColorOrCallback) == "Color3" then
+                currentColor = defaultColorOrCallback
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            else
+                if type(callbackOpt) == "function" then
+                    cb = callbackOpt
+                end
+            end
+
             local isOpen = false
 
             local card = Instance.new("Frame")
@@ -1460,7 +1544,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(14, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = title
+            label.Text = cpTitle
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1517,7 +1601,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                     previewBtn.BackgroundColor3 = currentColor
                     isOpen = false
                     Animate(card, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 44) })
-                    task.spawn(function() pcall(callback, currentColor) end)
+                    task.spawn(function() pcall(cb, currentColor) end)
                 end)
             end
 
@@ -1531,17 +1615,32 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                 Set = function(_, col: Color3)
                     currentColor = col
                     previewBtn.BackgroundColor3 = currentColor
-                    pcall(callback, currentColor)
+                    pcall(cb, currentColor)
                 end,
                 Value = currentColor
             }
         end
 
         -- 10. AddKeybind
-        function Tab:AddKeybind(title: string, defaultKey: Enum.KeyCode?, callback: (key: Enum.KeyCode) -> ())
-            local boundKey = defaultKey or Enum.KeyCode.E
+        function Tab:AddKeybind(title: any, arg2: any, arg3: any)
+            local kbTitle = tostring(title or "")
+            local boundKey = Enum.KeyCode.E
+            local cb = function(_: Enum.KeyCode) end
+
+            if type(arg2) == "function" then
+                cb = arg2
+            elseif typeof(arg2) == "EnumItem" then
+                boundKey = arg2
+                if type(arg3) == "function" then
+                    cb = arg3
+                end
+            else
+                if type(arg3) == "function" then
+                    cb = arg3
+                end
+            end
+
             local isListening = false
-            callback = callback or function() end
 
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, 0, 0, 44)
@@ -1559,7 +1658,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             label.Position = UDim2.fromOffset(14, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
-            label.Text = title
+            label.Text = kbTitle
             label.TextColor3 = Theme.TextPrimary
             label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1606,7 +1705,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             UserInputService.InputBegan:Connect(function(input, gpe)
                 if not gpe and not isListening and input.KeyCode == boundKey then
                     if UserInputService:GetFocusedTextBox() == nil then
-                        task.spawn(function() pcall(callback, boundKey) end)
+                        task.spawn(function() pcall(cb, boundKey) end)
                     end
                 end
             end)
@@ -1627,6 +1726,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 end
 
 -- ====================================================================
--- TEMİZ KÜTÜPHANE İHRACI (DEMO YOK, DOĞRUDAN RETURN EDER)
+-- TEMİZ KÜTÜPHANE İHRACI (SAF KÜTÜPHANE)
 -- ====================================================================
 return Library
