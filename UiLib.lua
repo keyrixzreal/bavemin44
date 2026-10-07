@@ -1,11 +1,11 @@
 --!strict
 --[[
     ═══════════════════════════════════════════════════════════════════
-    FROSTED GLASS UI LIBRARY (v2.1 - Pixel-Perfect Edition)
-    • Fixed dropdown state synchronization
-    • Opaque Orange Shield Cinematic Bypass Loader
-    • Auto "Bypass Loaded." green shield notification
-    • Cleaned up shadow glitches & enhanced typography
+    FROSTED GLASS UI LIBRARY (Sonoma Edition - Standalone Production)
+    • Fixed 'AddParagraph' and all component bindings
+    • Clean library export (No demo, direct 'return Library')
+    • %100 Opaque Orange Shield Cinematic Bypass Loader
+    • Multi-Executor Protected Core (gethui, syn.protect_gui, CoreGui)
     ═══════════════════════════════════════════════════════════════════
 ]]
 
@@ -25,7 +25,7 @@ if _G.FrostedGlassInstance then
 end
 
 -- ====================================================================
--- 1. EXECUTOR GÜVENLİ PARENT TESPİTİ
+-- 1. EXECUTOR GÜVENLİ GUI PARENT TESPİTİ
 -- ====================================================================
 local function GetSafeGuiContainer(): Instance
     local env = (getgenv and getgenv()) or _G
@@ -64,11 +64,11 @@ local Theme = {
     MainBg = Color3.fromRGB(16, 18, 24),          -- Derin, mat macOS arka planı
     SidebarBg = Color3.fromRGB(12, 14, 18),
     CardBg = Color3.fromRGB(24, 28, 38),
-    CardHover = Color3.fromRGB(34, 40, 54),
+    CardHover = Color3.fromRGB(34, 40, 56),
     CardActive = Color3.fromRGB(0, 122, 255),
     
     Accent = Color3.fromRGB(0, 122, 255),          -- iOS Neon Mavi
-    Orange = Color3.fromRGB(255, 149, 0),          -- Apple Turuncu (Bypass Loading)
+    Orange = Color3.fromRGB(255, 149, 0),          -- Apple Turuncu (Bypass Kalkanı)
     Success = Color3.fromRGB(52, 199, 89),         -- Apple Zümrüt Yeşili
     Warning = Color3.fromRGB(255, 179, 64),        -- macOS Amber
     Danger = Color3.fromRGB(255, 69, 58),          -- macOS Kırmızı
@@ -85,14 +85,12 @@ local Theme = {
     FontBold = Enum.Font.GothamBold,
 }
 
--- Global Animasyon Yardımcısı
 local function Animate(instance: Instance, tweenInfo: TweenInfo, properties: {[string]: any}): Tween
     local tween = TweenService:Create(instance, tweenInfo, properties)
     tween:Play()
     return tween
 end
 
--- Kenar Çizgisi (Glass Stroke)
 local function ApplyGlassStroke(instance: Instance, transparency: number?): UIStroke
     local stroke = Instance.new("UIStroke")
     stroke.Name = "GlassStroke"
@@ -105,7 +103,7 @@ local function ApplyGlassStroke(instance: Instance, transparency: number?): UISt
 end
 
 -- ====================================================================
--- 3. WEB ASSET İNDİRİCİ & ÖNBELLEK MOTORU
+-- 3. WEB ASSET VE İKON ÖNBELLEKLEME
 -- ====================================================================
 local AssetCache = {
     Folder = "frosted_assets",
@@ -118,7 +116,10 @@ local AssetCache = {
         user = "rbxassetid://10747373176",
         chevron = "rbxassetid://6031094364",
         lock = "rbxassetid://10723434711",
-        check = "rbxassetid://10709790644"
+        check = "rbxassetid://10709790644",
+        bell = "rbxassetid://10709775877",
+        terminal = "rbxassetid://10734976822",
+        eye = "rbxassetid://10723346959"
     }
 }
 
@@ -256,7 +257,7 @@ local function EnsureScreenGui(): ScreenGui
     end
 
     local gui = Instance.new("ScreenGui")
-    gui.Name = "FrostedGlass_V2"
+    gui.Name = "FrostedGlass_Production"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = GetSafeGuiContainer()
@@ -284,7 +285,6 @@ local function EnsureScreenGui(): ScreenGui
     return gui
 end
 
--- İkon ve Özel Renk Destekli Bildirim Fonksiyonu
 function Library:Notify(title: string, text: string, duration: number?, icon: string?, customColor: Color3?)
     duration = duration or 3.5
     local accentColor = customColor or Theme.Accent
@@ -294,7 +294,7 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     card.Name = "NotificationCard"
     card.Size = UDim2.fromOffset(310, 74)
     card.BackgroundColor3 = Theme.MainBg
-    card.BackgroundTransparency = 0.05
+    card.BackgroundTransparency = 0.04
     card.Position = UDim2.fromOffset(360, 0)
     card.ZIndex = 2001
 
@@ -304,7 +304,6 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
 
     ApplyGlassStroke(card, 0.78)
 
-    -- Sol Vurgu Şeridi
     local pill = Instance.new("Frame")
     pill.Size = UDim2.fromOffset(4, 38)
     pill.Position = UDim2.fromOffset(10, 18)
@@ -316,7 +315,6 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     pillCorner.CornerRadius = UDim.new(1, 0)
     pillCorner.Parent = pill
 
-    -- İkon
     local iconImg = Instance.new("ImageLabel")
     iconImg.Size = UDim2.fromOffset(22, 22)
     iconImg.Position = UDim2.fromOffset(24, 18)
@@ -326,7 +324,6 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     iconImg.ZIndex = 2002
     iconImg.Parent = card
 
-    -- Başlık
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, -60, 0, 18)
     titleLabel.Position = UDim2.fromOffset(54, 14)
@@ -339,7 +336,6 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     titleLabel.ZIndex = 2002
     titleLabel.Parent = card
 
-    -- Açıklama
     local descLabel = Instance.new("TextLabel")
     descLabel.Size = UDim2.new(1, -60, 0, 24)
     descLabel.Position = UDim2.fromOffset(54, 34)
@@ -353,7 +349,6 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
     descLabel.ZIndex = 2002
     descLabel.Parent = card
 
-    -- İlerleme Çubuğu
     local progressTrack = Instance.new("Frame")
     progressTrack.Size = UDim2.new(1, -20, 0, 2)
     progressTrack.Position = UDim2.new(0, 10, 1, -5)
@@ -393,23 +388,22 @@ function Library:Notify(title: string, text: string, duration: number?, icon: st
 end
 
 -- ====================================================================
--- 6. PENCERE OLUŞTURUCU (WINDOW BUILDER)
+-- 6. PENCERE VE SEKME BİLEŞENLERİ (WINDOW & TABS)
 -- ====================================================================
 function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     config = config or {}
-    local Title = config.Title or "FROSTED // OS"
+    local Title = config.Title or "FROSTED // Sonoma Edition"
     local UseBypass = (config.Bypass ~= nil and config.Bypass) or false
 
     local screenGui = EnsureScreenGui()
 
-    -- Ana Çerçeve (Opak, temiz ve bozuk gölgesiz)
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainWindow"
     mainFrame.Size = UDim2.fromOffset(680, 450)
     mainFrame.Position = UDim2.fromScale(0.5, 0.5)
     mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     mainFrame.BackgroundColor3 = Theme.MainBg
-    mainFrame.BackgroundTransparency = 0 -- Karakterin arkadan sızması önlendi
+    mainFrame.BackgroundTransparency = 0
     mainFrame.ClipsDescendants = false
     mainFrame.Parent = screenGui
 
@@ -423,7 +417,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     uiScale.Scale = 0.85
     uiScale.Parent = mainFrame
 
-    -- Üst Bar (Draggable)
+    -- Üst Bar
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
     topBar.Size = UDim2.new(1, 0, 0, 48)
@@ -432,7 +426,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
     MakeDraggable(topBar, mainFrame)
 
-    -- macOS Pencere Kontrol Noktaları
     local dotsContainer = Instance.new("Frame")
     dotsContainer.Name = "WindowControls"
     dotsContainer.Size = UDim2.fromOffset(70, 48)
@@ -511,10 +504,9 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         end
     end)
     CreateMacDot(Theme.Success, function()
-        Library:Notify("Sistem Aktif", "Çekirdek optimizasyonu tamamlandı.", 2.5, "shield", Theme.Success)
+        Library:Notify("Sistem Sağlıklı", "Bellek kancaları ve modüller aktif.", 2.5, "shield", Theme.Success)
     end)
 
-    -- Pencere Başlığı
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, -160, 1, 0)
     titleLabel.Position = UDim2.fromOffset(88, 0)
@@ -541,7 +533,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     bodyContainer.BackgroundTransparency = 1
     bodyContainer.Parent = mainFrame
 
-    -- Sol Kenar Çubuğu
     local sidebar = Instance.new("Frame")
     sidebar.Name = "Sidebar"
     sidebar.Size = UDim2.new(0, 180, 1, 0)
@@ -568,7 +559,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
     tabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     tabListLayout.Parent = tabButtonsList
 
-    -- Sayfalar Alanı
     local pagesFolder = Instance.new("Frame")
     pagesFolder.Name = "Pages"
     pagesFolder.Size = UDim2.new(1, -200, 1, -20)
@@ -585,15 +575,13 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
     Animate(uiScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
 
-    -- ================================================================
-    -- 7. %100 OPAK TURUNCU KALKANLI SİNEMATİK BYPASS LOADER
-    -- ================================================================
+    -- %100 OPAK TURUNCU KALKAN BYPASS EKRANI
     if UseBypass then
         local bypassOverlay = Instance.new("Frame")
         bypassOverlay.Name = "CinematicBypass"
         bypassOverlay.Size = UDim2.fromScale(1, 1)
         bypassOverlay.BackgroundColor3 = Theme.MainBg
-        bypassOverlay.BackgroundTransparency = 0 -- Tam %100 opak (arkası görünmez)
+        bypassOverlay.BackgroundTransparency = 0
         bypassOverlay.ZIndex = 500
         bypassOverlay.Parent = mainFrame
 
@@ -601,7 +589,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         bpCorner.CornerRadius = UDim.new(0, 16)
         bpCorner.Parent = bypassOverlay
 
-        -- Merkez Kart
         local centerCard = Instance.new("Frame")
         centerCard.Size = UDim2.fromOffset(360, 220)
         centerCard.Position = UDim2.fromScale(0.5, 0.5)
@@ -617,7 +604,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
         ApplyGlassStroke(centerCard, 0.8)
 
-        -- Turuncu Kalkan İkonu
         local shieldIcon = Instance.new("ImageLabel")
         shieldIcon.Name = "BypassShield"
         shieldIcon.Size = UDim2.fromOffset(48, 48)
@@ -625,25 +611,19 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         shieldIcon.AnchorPoint = Vector2.new(0.5, 0.5)
         shieldIcon.BackgroundTransparency = 1
         shieldIcon.Image = AssetCache:GetAsset("shield")
-        shieldIcon.ImageColor3 = Theme.Orange -- İstenen Turuncu Renk
+        shieldIcon.ImageColor3 = Theme.Orange
         shieldIcon.ZIndex = 502
         shieldIcon.Parent = centerCard
 
-        -- Kalkan Nabız (Pulse) Efekti
         task.spawn(function()
             while centerCard.Parent do
-                Animate(shieldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                    Size = UDim2.fromOffset(54, 54)
-                })
+                Animate(shieldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Size = UDim2.fromOffset(54, 54) })
                 task.wait(0.8)
-                Animate(shieldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                    Size = UDim2.fromOffset(48, 48)
-                })
+                Animate(shieldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Size = UDim2.fromOffset(48, 48) })
                 task.wait(0.8)
             end
         end)
 
-        -- Durum Metni (Başlangıç: "Bypass Loading...")
         local statusText = Instance.new("TextLabel")
         statusText.Name = "Status"
         statusText.Size = UDim2.new(1, -40, 0, 24)
@@ -656,7 +636,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         statusText.ZIndex = 502
         statusText.Parent = centerCard
 
-        -- İlerleme Çubuğu Taşıyıcı
         local barTrack = Instance.new("Frame")
         barTrack.Size = UDim2.new(1, -50, 0, 6)
         barTrack.Position = UDim2.fromOffset(25, 138)
@@ -691,16 +670,11 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         percentLabel.ZIndex = 502
         percentLabel.Parent = centerCard
 
-        -- 3 Aşamalı Dinamik Yükleme Akışı
         task.spawn(function()
-            -- Aşama 1: Turuncu Bypass Loading...
-            Animate(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.fromScale(0.55, 1)
-            })
+            Animate(barFill, TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromScale(0.55, 1) })
             percentLabel.Text = "55%"
             task.wait(1.2)
 
-            -- Aşama 2: Menu Initializing...
             statusText.Text = "Menu Initializing..."
             Animate(barFill, TweenInfo.new(0.9, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 Size = UDim2.fromScale(1.0, 1),
@@ -715,10 +689,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             statusText.TextColor3 = Theme.Success
             task.wait(0.8)
 
-            -- Aşama 3: Yumuşakça Açılma & Yok Olma
-            local fade = Animate(bypassOverlay, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                BackgroundTransparency = 1
-            })
+            local fade = Animate(bypassOverlay, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = 1 })
             Animate(centerCard, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
                 Position = UDim2.fromScale(0.5, 0.55),
                 BackgroundTransparency = 1
@@ -732,25 +703,16 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             fade.Completed:Wait()
             bypassOverlay:Destroy()
 
-            -- İstenen Yeşil Kalkanlı "Bypass Loaded." Bildirimi
             Library:Notify("Bypass Loaded.", "Menu successfully initialized.", 3.5, "shield", Theme.Success)
         end)
     end
 
-    -- ================================================================
-    -- 8. SEKME VE BİLEŞEN SİSTEMİ
-    -- ================================================================
     local Window = {
         Tabs = {},
         CurrentTab = nil
     }
 
     function Window:CreateTab(name: string, iconIdentifier: string?)
-        local Tab = {
-            Name = name,
-            Elements = {}
-        }
-
         local tabBtn = Instance.new("TextButton")
         tabBtn.Name = "Tab_" .. name
         tabBtn.Size = UDim2.new(1, 0, 0, 38)
@@ -806,6 +768,14 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
         pagePadding.PaddingRight = UDim.new(0, 8)
         pagePadding.Parent = page
 
+        local Tab = {
+            Name = name,
+            Page = page,
+            Button = tabBtn,
+            Label = tabLabel,
+            Icon = icon
+        }
+
         local function Select()
             for _, otherTab in ipairs(Window.Tabs) do
                 if otherTab ~= Tab then
@@ -820,9 +790,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             page.Position = UDim2.fromOffset(0, 12)
             page.Visible = true
 
-            Animate(page, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.fromOffset(0, 0)
-            })
+            Animate(page, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = UDim2.fromOffset(0, 0) })
             Animate(tabBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 BackgroundColor3 = Theme.Accent,
                 BackgroundTransparency = 0.22
@@ -844,32 +812,120 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             end
         end)
 
-        Tab.Button = tabBtn
-        Tab.Label = tabLabel
-        Tab.Icon = icon
-        Tab.Page = page
-
         table.insert(Window.Tabs, Tab)
         if #Window.Tabs == 1 then
             Select()
         end
 
-        -- Component: Label
-        function Tab:AddLabel(text: string)
+        -- ============================================================
+        -- SEKME BİLEŞENLERİ (TÜM METOTLAR EKSİKSİZ MEVCUTTUR)
+        -- ============================================================
+
+        -- 1. AddSection
+        function Tab:AddSection(title: string)
+            local sectionCard = Instance.new("Frame")
+            sectionCard.Name = "Section_" .. title
+            sectionCard.Size = UDim2.new(1, 0, 0, 30)
+            sectionCard.BackgroundTransparency = 1
+            sectionCard.Parent = page
+
+            local sectionLabel = Instance.new("TextLabel")
+            sectionLabel.Size = UDim2.new(1, -20, 1, 0)
+            sectionLabel.Position = UDim2.fromOffset(6, 0)
+            sectionLabel.BackgroundTransparency = 1
+            sectionLabel.Font = Theme.FontBold
+            sectionLabel.Text = string.upper(title)
+            sectionLabel.TextColor3 = Theme.Accent
+            sectionLabel.TextSize = 11
+            sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            sectionLabel.Parent = sectionCard
+
+            local line = Instance.new("Frame")
+            line.Size = UDim2.new(1, -12, 0, 1)
+            line.Position = UDim2.new(0, 6, 1, -2)
+            line.BackgroundColor3 = Theme.StrokeColor
+            line.BackgroundTransparency = 0.94
+            line.BorderSizePixel = 0
+            line.Parent = sectionCard
+
+            return {
+                Set = function(_, newTitle: string) sectionLabel.Text = string.upper(newTitle) end
+            }
+        end
+
+        -- 2. AddParagraph (Hatanın çözüldüğü kritik metot!)
+        function Tab:AddParagraph(title: string, desc: string)
+            local paraCard = Instance.new("Frame")
+            paraCard.Name = "Paragraph_" .. title
+            paraCard.Size = UDim2.new(1, 0, 0, 60)
+            paraCard.BackgroundColor3 = Theme.CardBg
+            paraCard.BackgroundTransparency = 0.45
+            paraCard.Parent = page
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0, 10)
+            corner.Parent = paraCard
+            ApplyGlassStroke(paraCard, 0.9)
+
+            local pTitle = Instance.new("TextLabel")
+            pTitle.Size = UDim2.new(1, -28, 0, 20)
+            pTitle.Position = UDim2.fromOffset(14, 8)
+            pTitle.BackgroundTransparency = 1
+            pTitle.Font = Theme.FontBold
+            pTitle.Text = title
+            pTitle.TextColor3 = Theme.TextPrimary
+            pTitle.TextSize = 13
+            pTitle.TextXAlignment = Enum.TextXAlignment.Left
+            pTitle.Parent = paraCard
+
+            local pDesc = Instance.new("TextLabel")
+            pDesc.Size = UDim2.new(1, -28, 0, 26)
+            pDesc.Position = UDim2.fromOffset(14, 28)
+            pDesc.BackgroundTransparency = 1
+            pDesc.Font = Theme.FontRegular
+            pDesc.Text = desc
+            pDesc.TextColor3 = Theme.TextMuted
+            pDesc.TextSize = 11
+            pDesc.TextWrapped = true
+            pDesc.TextXAlignment = Enum.TextXAlignment.Left
+            pDesc.Parent = paraCard
+
+            return {
+                Set = function(_, newTitle: string, newDesc: string)
+                    pTitle.Text = newTitle
+                    pDesc.Text = newDesc
+                end
+            }
+        end
+
+        -- 3. AddLabel
+        function Tab:AddLabel(text: string, iconIdent: string?)
             local labelCard = Instance.new("Frame")
-            labelCard.Size = UDim2.new(1, 0, 0, 36)
+            labelCard.Size = UDim2.new(1, 0, 0, 38)
             labelCard.BackgroundColor3 = Theme.CardBg
-            labelCard.BackgroundTransparency = 0.5
+            labelCard.BackgroundTransparency = 0.45
             labelCard.Parent = page
 
             local corner = Instance.new("UICorner")
             corner.CornerRadius = UDim.new(0, 10)
             corner.Parent = labelCard
-            ApplyGlassStroke(labelCard, 0.92)
+            ApplyGlassStroke(labelCard, 0.9)
+
+            local offsetLeft = 14
+            if iconIdent then
+                local iconImg = Instance.new("ImageLabel")
+                iconImg.Size = UDim2.fromOffset(18, 18)
+                iconImg.Position = UDim2.fromOffset(12, 10)
+                iconImg.BackgroundTransparency = 1
+                iconImg.Image = AssetCache:GetAsset(iconIdent)
+                iconImg.ImageColor3 = Theme.Accent
+                iconImg.Parent = labelCard
+                offsetLeft = 38
+            end
 
             local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, -24, 1, 0)
-            textLabel.Position = UDim2.fromOffset(14, 0)
+            textLabel.Size = UDim2.new(1, -offsetLeft - 10, 1, 0)
+            textLabel.Position = UDim2.fromOffset(offsetLeft, 0)
             textLabel.BackgroundTransparency = 1
             textLabel.Font = Theme.FontMedium
             textLabel.Text = text
@@ -883,8 +939,8 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- Component: Button
-        function Tab:AddButton(text: string, callback: () -> ())
+        -- 4. AddButton
+        function Tab:AddButton(text: string, callback: () -> (), iconIdent: string?)
             callback = callback or function() end
 
             local btnCard = Instance.new("TextButton")
@@ -904,9 +960,21 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             btnScale.Scale = 1
             btnScale.Parent = btnCard
 
+            local offsetLeft = 14
+            if iconIdent then
+                local iconImg = Instance.new("ImageLabel")
+                iconImg.Size = UDim2.fromOffset(18, 18)
+                iconImg.Position = UDim2.fromOffset(12, 12)
+                iconImg.BackgroundTransparency = 1
+                iconImg.Image = AssetCache:GetAsset(iconIdent)
+                iconImg.ImageColor3 = Theme.Accent
+                iconImg.Parent = btnCard
+                offsetLeft = 38
+            end
+
             local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -40, 1, 0)
-            label.Position = UDim2.fromOffset(14, 0)
+            label.Size = UDim2.new(1, -offsetLeft - 36, 1, 0)
+            label.Position = UDim2.fromOffset(offsetLeft, 0)
             label.BackgroundTransparency = 1
             label.Font = Theme.FontMedium
             label.Text = text
@@ -939,15 +1007,13 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             end)
             btnCard.MouseButton1Up:Connect(function()
                 Animate(btnScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
-                task.spawn(function()
-                    pcall(callback)
-                end)
+                task.spawn(function() pcall(callback) end)
             end)
 
             return btnCard
         end
 
-        -- Component: iOS Switch Toggle
+        -- 5. AddToggle
         function Tab:AddToggle(title: string, default: boolean?, callback: (state: boolean) -> ())
             local state = default or false
             callback = callback or function() end
@@ -998,7 +1064,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             knobCorner.CornerRadius = UDim.new(1, 0)
             knobCorner.Parent = knob
 
-            local function Update(newState: boolean)
+            local function UpdateToggle(newState: boolean)
                 state = newState
                 local targetPos = state and UDim2.new(1, -23, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
                 local targetColor = state and Theme.Accent or Color3.fromRGB(45, 50, 65)
@@ -1011,24 +1077,20 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
                     })
                 end)
                 Animate(switch, TweenInfo.new(0.3), { BackgroundColor3 = targetColor })
-
-                task.spawn(function()
-                    pcall(callback, state)
-                end)
+                task.spawn(function() pcall(callback, state) end)
             end
 
-            switch.MouseButton1Click:Connect(function()
-                Update(not state)
-            end)
+            switch.MouseButton1Click:Connect(function() UpdateToggle(not state) end)
 
             return {
-                Set = function(_, val: boolean) Update(val) end,
+                Set = function(_, val: boolean) UpdateToggle(val) end,
                 Value = state
             }
         end
 
-        -- Component: Slider
-        function Tab:AddSlider(title: string, min: number, max: number, default: number?, callback: (val: number) -> ())
+        -- 6. AddSlider
+        function Tab:AddSlider(title: string, min: number, max: number, default: number?, step: number?, callback: (val: number) -> ())
+            local stepSize = step or 1
             local value = default or min
             callback = callback or function() end
 
@@ -1102,21 +1164,23 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
             local dragging = false
 
-            local function UpdateInput(input: InputObject)
-                local pct = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-                value = math.floor(min + (max - min) * pct + 0.5)
+            local function CalculateValue(inputX: number)
+                local pct = math.clamp((inputX - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                local rawVal = min + (max - min) * pct
+                value = math.floor((rawVal / stepSize) + 0.5) * stepSize
+                value = math.clamp(value, min, max)
+                
                 valueLabel.Text = tostring(value)
-                Animate(fill, TweenInfo.new(0.05, Enum.EasingStyle.Linear), { Size = UDim2.fromScale(pct, 1) })
-                task.spawn(function()
-                    pcall(callback, value)
-                end)
+                local fillPct = (value - min) / (max - min)
+                Animate(fill, TweenInfo.new(0.05, Enum.EasingStyle.Linear), { Size = UDim2.fromScale(fillPct, 1) })
+                task.spawn(function() pcall(callback, value) end)
             end
 
             track.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     Animate(knob, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(18, 18) })
-                    UpdateInput(input)
+                    CalculateValue(input.Position.X)
                 end
             end)
 
@@ -1131,7 +1195,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
             UserInputService.InputChanged:Connect(function(input)
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    UpdateInput(input)
+                    CalculateValue(input.Position.X)
                 end
             end)
 
@@ -1147,11 +1211,11 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- Component: Dropdown (Seçim Senkronizasyonu Düzeltildi!)
-        function Tab:AddDropdown(title: string, options: {string}, callback: (selected: string) -> ())
+        -- 7. AddDropdown
+        function Tab:AddDropdown(title: string, options: {string}, default: string?, callback: (selected: string) -> ())
             options = options or {}
             callback = callback or function() end
-            local selectedOption = options[1] or "Select..."
+            local selectedOption = default or options[1] or "Seçiniz..."
             local isOpen = false
 
             local card = Instance.new("Frame")
@@ -1190,7 +1254,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             currentLabel.BackgroundTransparency = 1
             currentLabel.Font = Theme.FontMedium
             currentLabel.Text = selectedOption
-            currentLabel.TextColor3 = Theme.Accent -- Seçili metin vurgusu
+            currentLabel.TextColor3 = Theme.Accent
             currentLabel.TextSize = 12
             currentLabel.TextXAlignment = Enum.TextXAlignment.Right
             currentLabel.Parent = header
@@ -1215,7 +1279,6 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             optLayout.SortOrder = Enum.SortOrder.LayoutOrder
             optLayout.Parent = optionsContainer
 
-            -- Görsel Güncelleme Yardımcısı (Hepsini Senkronize Eder)
             local function UpdateDropdownVisuals()
                 currentLabel.Text = selectedOption
                 for _, ch in ipairs(optionsContainer:GetChildren()) do
@@ -1270,13 +1333,11 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
                     optBtn.MouseButton1Click:Connect(function()
                         selectedOption = optText
-                        UpdateDropdownVisuals() -- Tıklandığında anında maviye boyar!
+                        UpdateDropdownVisuals()
                         isOpen = false
                         Animate(chevron, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Rotation = 0 })
                         Animate(card, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 42) })
-                        task.spawn(function()
-                            pcall(callback, selectedOption)
-                        end)
+                        task.spawn(function() pcall(callback, selectedOption) end)
                     end)
                 end
             end
@@ -1303,7 +1364,180 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             }
         end
 
-        -- Component: Keybind
+        -- 8. AddTextInput
+        function Tab:AddTextInput(title: string, placeholder: string?, callback: (text: string) -> ())
+            callback = callback or function() end
+
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 44)
+            card.BackgroundColor3 = Theme.CardBg
+            card.BackgroundTransparency = 0.45
+            card.Parent = page
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0, 10)
+            corner.Parent = card
+
+            local stroke = ApplyGlassStroke(card, 0.88)
+
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(0.45, 0, 1, 0)
+            label.Position = UDim2.fromOffset(14, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Theme.FontMedium
+            label.Text = title
+            label.TextColor3 = Theme.TextPrimary
+            label.TextSize = 13
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.Parent = card
+
+            local inputContainer = Instance.new("Frame")
+            inputContainer.Size = UDim2.new(0.5, -14, 0, 28)
+            inputContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+            inputContainer.AnchorPoint = Vector2.new(0, 0.5)
+            inputContainer.BackgroundColor3 = Color3.fromRGB(36, 42, 56)
+            inputContainer.Parent = card
+
+            local inputCorner = Instance.new("UICorner")
+            inputCorner.CornerRadius = UDim.new(0, 6)
+            inputCorner.Parent = inputContainer
+
+            local textBox = Instance.new("TextBox")
+            textBox.Size = UDim2.new(1, -16, 1, 0)
+            textBox.Position = UDim2.fromOffset(8, 0)
+            textBox.BackgroundTransparency = 1
+            textBox.Font = Theme.FontRegular
+            textBox.PlaceholderText = placeholder or "Yazınız..."
+            textBox.PlaceholderColor3 = Theme.TextMuted
+            textBox.Text = ""
+            textBox.TextColor3 = Theme.TextPrimary
+            textBox.TextSize = 12
+            textBox.ClearTextOnFocus = false
+            textBox.Parent = inputContainer
+
+            textBox.Focused:Connect(function()
+                Animate(inputContainer, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(45, 52, 70) })
+                stroke.Color = Theme.Accent
+                stroke.Transparency = 0.4
+            end)
+
+            textBox.FocusLost:Connect(function()
+                Animate(inputContainer, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(36, 42, 56) })
+                stroke.Color = Theme.StrokeColor
+                stroke.Transparency = Theme.StrokeTransparency
+                task.spawn(function() pcall(callback, textBox.Text) end)
+            end)
+
+            return {
+                Set = function(_, newText: string)
+                    textBox.Text = newText
+                    pcall(callback, newText)
+                end,
+                Get = function(_) return textBox.Text end
+            }
+        end
+
+        -- 9. AddColorPicker
+        function Tab:AddColorPicker(title: string, defaultColor: Color3?, callback: (color: Color3) -> ())
+            local currentColor = defaultColor or Color3.fromRGB(0, 122, 255)
+            callback = callback or function() end
+            local isOpen = false
+
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 44)
+            card.BackgroundColor3 = Theme.CardBg
+            card.BackgroundTransparency = 0.45
+            card.ClipsDescendants = true
+            card.Parent = page
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0, 10)
+            corner.Parent = card
+            ApplyGlassStroke(card, 0.88)
+
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, -70, 0, 44)
+            label.Position = UDim2.fromOffset(14, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Theme.FontMedium
+            label.Text = title
+            label.TextColor3 = Theme.TextPrimary
+            label.TextSize = 13
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.Parent = card
+
+            local previewBtn = Instance.new("TextButton")
+            previewBtn.Size = UDim2.fromOffset(36, 22)
+            previewBtn.Position = UDim2.new(1, -48, 0, 11)
+            previewBtn.BackgroundColor3 = currentColor
+            previewBtn.Text = ""
+            previewBtn.AutoButtonColor = false
+            previewBtn.Parent = card
+
+            local prevCorner = Instance.new("UICorner")
+            prevCorner.CornerRadius = UDim.new(0, 6)
+            prevCorner.Parent = previewBtn
+
+            local paletteFrame = Instance.new("Frame")
+            paletteFrame.Size = UDim2.new(1, -28, 0, 40)
+            paletteFrame.Position = UDim2.fromOffset(14, 48)
+            paletteFrame.BackgroundTransparency = 1
+            paletteFrame.Parent = card
+
+            local presets = {
+                Color3.fromRGB(255, 69, 58),
+                Color3.fromRGB(255, 149, 0),
+                Color3.fromRGB(255, 214, 10),
+                Color3.fromRGB(52, 199, 89),
+                Color3.fromRGB(0, 122, 255),
+                Color3.fromRGB(175, 82, 222),
+                Color3.fromRGB(255, 255, 255)
+            }
+
+            local pList = Instance.new("UIListLayout")
+            pList.FillDirection = Enum.FillDirection.Horizontal
+            pList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            pList.Padding = UDim.new(0, 10)
+            pList.Parent = paletteFrame
+
+            for _, colorItem in ipairs(presets) do
+                local pBtn = Instance.new("TextButton")
+                pBtn.Size = UDim2.fromOffset(28, 28)
+                pBtn.BackgroundColor3 = colorItem
+                pBtn.Text = ""
+                pBtn.AutoButtonColor = false
+                pBtn.Parent = paletteFrame
+
+                local pCorn = Instance.new("UICorner")
+                pCorn.CornerRadius = UDim.new(1, 0)
+                pCorn.Parent = pBtn
+
+                pBtn.MouseButton1Click:Connect(function()
+                    currentColor = colorItem
+                    previewBtn.BackgroundColor3 = currentColor
+                    isOpen = false
+                    Animate(card, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 44) })
+                    task.spawn(function() pcall(callback, currentColor) end)
+                end)
+            end
+
+            previewBtn.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                local targetH = isOpen and 96 or 44
+                Animate(card, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, targetH) })
+            end)
+
+            return {
+                Set = function(_, col: Color3)
+                    currentColor = col
+                    previewBtn.BackgroundColor3 = currentColor
+                    pcall(callback, currentColor)
+                end,
+                Value = currentColor
+            }
+        end
+
+        -- 10. AddKeybind
         function Tab:AddKeybind(title: string, defaultKey: Enum.KeyCode?, callback: (key: Enum.KeyCode) -> ())
             local boundKey = defaultKey or Enum.KeyCode.E
             local isListening = false
@@ -1372,9 +1606,7 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
             UserInputService.InputBegan:Connect(function(input, gpe)
                 if not gpe and not isListening and input.KeyCode == boundKey then
                     if UserInputService:GetFocusedTextBox() == nil then
-                        task.spawn(function()
-                            pcall(callback, boundKey)
-                        end)
+                        task.spawn(function() pcall(callback, boundKey) end)
                     end
                 end
             end)
@@ -1393,4 +1625,8 @@ function Library:CreateWindow(config: { Title: string?, Bypass: boolean? })
 
     return Window
 end
+
+-- ====================================================================
+-- TEMİZ KÜTÜPHANE İHRACI (DEMO YOK, DOĞRUDAN RETURN EDER)
+-- ====================================================================
 return Library
